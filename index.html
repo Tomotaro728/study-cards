@@ -1,0 +1,1070 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="個別学習 単語カード">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f6f4ef" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141518" media="(prefers-color-scheme: dark)">
+<title>個別学習 単語カード</title>
+<style>
+:root{
+  --base:100%;
+  --bg:#f6f4ef; --surface:#ffffff; --surface2:#faf9f6; --text:#1d1f23; --muted:#646a73; --faint:#9aa0a8; --line:#e4e1da;
+  --accent:#b3362c; --accent-ink:#ffffff; --accent-weak:#f8e6e3;
+  --known:#2a8f3c; --known-ink:#ffffff; --known-weak:#e2f2e5;
+  --unknown:#c25a1f; --unknown-ink:#ffffff; --unknown-weak:#fbe9dd;
+  --chip:#eeebe5; --chip-on:#b3362c; --chip-on-ink:#ffffff;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 6px 18px rgba(0,0,0,.07);
+  --rt:#4f555d; --overlay:rgba(0,0,0,.45); --toast-bg:#26282c; --toast-ink:#fff;
+  --t1:#d33; --t2:#2a8f3c; --t3:#2458c5; --t4:#8a3ab9; --t5:#777;
+  --font-zh:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+  --font-ja:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic","Meiryo","Noto Sans JP",sans-serif;
+  --font-py:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#141518; --surface:#1f2125; --surface2:#25282d; --text:#ececec; --muted:#a6abb3; --faint:#7a8089; --line:#34373d;
+    --accent:#e46b5f; --accent-ink:#1b0f0d; --accent-weak:#3b2522;
+    --known:#5cc477; --known-ink:#0d1f12; --known-weak:#1e3324;
+    --unknown:#ec9a63; --unknown-ink:#25150a; --unknown-weak:#3a2a1f;
+    --chip:#2b2e33; --chip-on:#e46b5f; --chip-on-ink:#1b0f0d;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.35);
+    --rt:#c3c8cf; --overlay:rgba(0,0,0,.6); --toast-bg:#eceef1; --toast-ink:#16171a;
+    --t1:#ff6b6b; --t2:#5fd17c; --t3:#7aa7ff; --t4:#c994f3; --t5:#a3a3a3;
+  }
+}
+*{box-sizing:border-box}
+html{font-size:var(--base);-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font-ja);line-height:1.6;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;overflow-x:hidden}
+button,input,select{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[lang="zh-Hans"]{font-family:var(--font-zh)}
+[hidden]{display:none!important}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+main.wrap{overflow-x:clip;padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+.muted{color:var(--muted)}
+.small{font-size:.82rem}
+
+/* header */
+header.top{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+header.top .wrap{display:flex;align-items:center;gap:6px;min-height:54px}
+.brand{flex:1;min-width:0;display:flex;align-items:center;gap:8px;border:0;background:none;padding:0;min-height:44px;
+  font-weight:800;font-size:.95rem;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand .bt{overflow:hidden;text-overflow:ellipsis}
+.logo{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--accent);color:var(--accent-ink);font-family:var(--font-zh);font-size:.95rem;font-weight:700}
+nav.tabs{display:flex;gap:2px;flex:none}
+nav.tabs button{min-height:44px;min-width:44px;padding:0 9px;border:0;background:transparent;border-radius:10px;font-weight:700;font-size:.88rem;color:var(--muted)}
+nav.tabs button[aria-current="page"]{color:var(--accent);background:var(--accent-weak)}
+
+/* common controls */
+h2.ttl{font-size:1.1rem;margin:18px 0 10px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-top:16px}
+.field+.field{margin-top:18px}
+.lbl{font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.03em}
+.lbl .sub{font-weight:500}
+select{width:100%;min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);padding:0 12px;font-size:max(16px,1rem)}
+.seg{display:flex;background:var(--chip);border-radius:13px;padding:3px;gap:3px}
+.seg button{flex:1;min-width:0;min-height:44px;border:0;background:transparent;border-radius:10px;font-weight:700;color:var(--muted);padding:0 6px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:44px;padding:0 16px;border-radius:22px;border:1px solid var(--line);background:var(--surface);font-weight:700}
+.chip[aria-pressed="true"]{background:var(--chip-on);border-color:var(--chip-on);color:var(--chip-on-ink)}
+.checklist{display:flex;flex-direction:column;gap:6px}
+.lrow{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:6px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);text-align:left}
+.lrow .ck{flex:none;width:22px;height:22px;border-radius:7px;border:2px solid var(--faint);position:relative}
+.lrow[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-weak)}
+.lrow[aria-pressed="true"] .ck{background:var(--accent);border-color:var(--accent)}
+.lrow[aria-pressed="true"] .ck::after{content:"";position:absolute;left:5px;top:1px;width:6px;height:11px;border:solid var(--accent-ink);border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.lrow .lt{flex:1;min-width:0;line-height:1.35}
+.lrow .lt b{display:block;font-size:.95rem}
+.lrow .lt small{display:block;color:var(--muted);font-size:.78rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lrow .lt small.dt{color:var(--faint);font-size:.72rem}
+.lrow .n{flex:none;color:var(--muted);font-size:.8rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:50px;padding:6px 18px;line-height:1.3;border-radius:14px;border:1px solid var(--line);background:var(--surface);font-weight:800;font-size:1rem}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.known{background:var(--known);border-color:var(--known);color:var(--known-ink)}
+.btn.unknown{background:var(--unknown);border-color:var(--unknown);color:var(--unknown-ink)}
+.btn.danger{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.4;cursor:default}
+.actions{display:grid;gap:10px;margin-top:14px}
+.home-cta{position:sticky;bottom:0;z-index:10;margin-top:12px;padding:8px 0 calc(12px + env(safe-area-inset-bottom));background:var(--bg);border-top:1px solid var(--line)}
+.count{text-align:center;color:var(--muted);font-size:.9rem;margin-bottom:6px}
+.count b{font-size:1.35rem;color:var(--text);margin-right:2px}
+.cta-row{display:grid;grid-template-columns:3fr 2fr;gap:10px}
+.resume{width:100%;margin-bottom:8px;min-height:44px;font-size:.92rem}
+.pill{min-height:44px;padding:0 14px;border-radius:22px;border:1px solid var(--line);background:var(--surface);font-weight:700;font-size:.85rem;white-space:nowrap}
+.pill[aria-pressed="true"]{background:var(--accent-weak);border-color:var(--accent);color:var(--accent)}
+.icon-btn{flex:none;display:inline-grid;place-items:center;width:44px;height:44px;border-radius:22px;border:1px solid var(--line);background:var(--surface);color:var(--muted);padding:0}
+.icon-btn svg{width:20px;height:20px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+/* study */
+.study-top{display:flex;align-items:center;gap:8px;margin-top:12px}
+.prog{flex:1;min-width:0}
+.prog-txt{display:flex;justify-content:space-between;gap:6px;font-size:.82rem;color:var(--muted);font-weight:700;margin-bottom:4px}
+.bar{height:6px;border-radius:3px;background:var(--chip);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.stage{position:relative;margin:14px 0 4px}
+.swipe{position:relative;will-change:transform}
+.card{perspective:1400px;cursor:pointer;-webkit-user-select:none;user-select:none;border-radius:var(--r)}
+.card-inner{display:grid;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,.7,.2,1);--card-h:clamp(300px,52vh,520px)}
+.card.noanim .card-inner{transition:none}
+.card.flipped .card-inner{transform:rotateY(180deg)}
+.face{grid-area:1/1;align-self:start;min-width:0;min-height:var(--card-h);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  padding:14px 18px 16px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.back{transform:rotateY(180deg)}
+.card:not(.flipped) .back,.card.flipped .front{pointer-events:none}
+/* 表を見ているあいだは裏面の高さを表に合わせ、カードが縦に間延びしないようにする */
+.card:not(.flipped) .back{max-height:var(--card-h);overflow:hidden}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.75rem;color:var(--muted)}
+.badge{display:inline-block;padding:1px 9px;border-radius:999px;background:var(--chip);margin-right:4px;font-weight:700}
+.badge.rel{background:transparent;border:1px solid var(--line)}
+.meta>span:first-child{flex:none}
+.src{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.front-body{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px 0}
+.ja-q{font-size:1.55rem;font-weight:800;line-height:1.55;overflow-wrap:anywhere}
+.tap-hint{text-align:center;font-size:.75rem;color:var(--faint)}
+.zh-head{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;min-width:0;max-width:100%}
+.back .zh-head{margin:20px 0 2px}
+.zh-word{font-weight:600;line-height:1.3;overflow-wrap:anywhere;cursor:pointer;max-width:100%}
+.zh-word.s1{font-size:3rem}.zh-word.s2{font-size:2.5rem}.zh-word.s3{font-size:2.1rem}.zh-word.s4{font-size:1.8rem}.zh-word.s5{font-size:1.5rem}
+.zh-word ruby{ruby-position:over;-webkit-ruby-position:before;ruby-align:center;margin:0 .03em}
+.zh-word rt{font-size:.6em;font-family:var(--font-py);font-weight:500;color:var(--rt);line-height:1.15;letter-spacing:0}
+.card:not(.pin-on) .zh-word rt{visibility:hidden}
+.zh-tools{display:flex;gap:8px;justify-content:center}
+.ja-ans{font-size:1.25rem;font-weight:800;text-align:center;margin:10px 0 0;overflow-wrap:anywhere}
+.sec{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.sec-h{font-size:.72rem;color:var(--muted);font-weight:800;letter-spacing:.06em;margin-bottom:4px}
+.def{margin:0;font-size:1rem;overflow-wrap:anywhere}
+.note{margin:0;font-size:.92rem;line-height:1.7;overflow-wrap:anywhere;white-space:pre-line}
+ol.ex{margin:0;padding-left:1.4em}
+ol.ex li{margin:4px 0 10px}
+ol.ex li.ex-more{display:none}
+.card.ex-open ol.ex li.ex-more{display:list-item}
+.card.ex-open .more{display:none}
+.ex-zh{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ex-zh span{font-size:1.05rem;padding-top:8px;overflow-wrap:anywhere;min-width:0}
+.ex-ja{font-size:.88rem;color:var(--muted);overflow-wrap:anywhere}
+.more{min-height:44px;border:0;background:transparent;color:var(--accent);font-weight:800;padding:0 4px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--chip);font-size:.85rem}
+.tag.parent{background:transparent;border:1px solid var(--line)}
+.ai{display:inline-block;margin-left:6px;padding:0 6px;border-radius:6px;border:1px solid var(--line);color:var(--faint);
+  font-family:var(--font-ja);font-size:.6rem;font-weight:700;line-height:1.7;vertical-align:middle;white-space:nowrap}
+.sw-tag{position:absolute;top:22px;z-index:5;padding:2px 12px;border:3px solid;border-radius:10px;font-weight:900;font-size:1.15rem;opacity:0;pointer-events:none;background:var(--surface)}
+.sw-known{left:20px;color:var(--known);border-color:var(--known);transform:rotate(-10deg)}
+.sw-unknown{right:20px;color:var(--unknown);border-color:var(--unknown);transform:rotate(10deg)}
+.judge{position:sticky;bottom:0;z-index:10;display:grid;grid-template-columns:auto 1fr 1fr;gap:10px;background:var(--bg);
+  padding:10px 0 calc(10px + env(safe-area-inset-bottom))}
+.judge .btn{min-height:54px;font-size:1.05rem}
+.judge #b-prev{padding:0 14px;font-size:.92rem}
+.hint-line{text-align:center;font-size:.75rem;color:var(--faint);margin:0}
+
+/* done */
+.done h2{margin:4px 0 12px;font-size:1.2rem;text-align:center}
+.score{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sc{border-radius:14px;padding:12px;text-align:center;font-weight:800}
+.sc span{display:block;font-size:.85rem}
+.sc b{font-size:2.2rem;line-height:1.2}
+.sc.known{background:var(--known-weak);color:var(--known)}
+.sc.unknown{background:var(--unknown-weak);color:var(--unknown)}
+.done p{text-align:center;margin:12px 0 0}
+
+/* list */
+.search{margin-top:16px}
+.search input{width:100%;min-height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface);padding:0 14px;font-size:max(16px,1rem)}
+.tbl{width:100%;border-collapse:collapse;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:table}
+.tbl th{font-size:.75rem;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface2)}
+.tbl td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:.9rem;overflow-wrap:anywhere}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl tbody tr:hover{background:var(--surface2)}
+.tbl .c-zh{font-size:1.15rem;font-weight:600;white-space:nowrap}
+.tbl .c-py{font-family:var(--font-py);min-width:7em}
+.tbl .c-ja{min-width:12em}
+body.wide .wrap{max-width:960px}
+.tbl .c-ls,.tbl .c-ty{white-space:nowrap;color:var(--muted);font-size:.8rem}
+.tbl .c-ls.long{white-space:normal;min-width:8em}
+.tbl .ls-dt{display:block;color:var(--faint);font-size:.72rem}
+.st{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.75rem;font-weight:800;white-space:nowrap}
+.st.known{background:var(--known-weak);color:var(--known)}
+.st.unknown{background:var(--unknown-weak);color:var(--unknown)}
+.st.none{color:var(--faint);border:1px solid var(--line)}
+@media (max-width:599px){
+  .tbl,.tbl tbody{display:block}
+  .tbl thead{display:none}
+  .tbl tbody tr{display:grid;grid-template-columns:auto auto 1fr;grid-template-areas:"zh zh st" "py py py" "ja ja ja" "ls ty ty";
+    column-gap:8px;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .tbl tbody tr:last-child{border-bottom:0}
+  .tbl td{padding:0;border:0}
+  .tbl .c-zh{grid-area:zh;white-space:normal}
+  .tbl .c-st{grid-area:st;justify-self:end;align-self:center}
+  .tbl .c-py{grid-area:py;white-space:normal;font-size:.85rem}
+  .tbl .c-ja{grid-area:ja;margin-top:2px;min-width:0}
+  .tbl .c-ls{grid-area:ls;margin-top:4px}
+  .tbl .ls-dt{display:inline-block;white-space:nowrap;margin-left:6px}
+  .tbl .c-ty{grid-area:ty;margin-top:4px}
+}
+.empty{text-align:center;color:var(--muted);padding:30px 0}
+
+/* settings */
+.set-note{font-size:.8rem;color:var(--muted);margin:8px 0 0}
+.tone-demo{display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--font-py);font-size:1rem;margin-top:8px}
+.tone-demo span{white-space:nowrap}
+.tone-on .t1{color:var(--t1)}.tone-on .t2{color:var(--t2)}.tone-on .t3{color:var(--t3)}.tone-on .t4{color:var(--t4)}.tone-on .t5{color:var(--t5)}
+.reset-btns{display:grid;gap:8px}
+
+/* modal / toast */
+.modal{position:fixed;inset:0;z-index:100;background:var(--overlay);display:grid;place-items:center;padding:16px}
+.modal-box{width:100%;max-width:380px;background:var(--surface);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+.modal-box p{margin:0 0 16px;white-space:pre-line}
+.m-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));z-index:110;transform:translateX(-50%) translateY(10px);
+  max-width:calc(100% - 32px);background:var(--toast-bg);color:var(--toast-ink);padding:10px 16px;border-radius:12px;font-size:.88rem;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion: reduce){
+  .card-inner,.bar i,.toast{transition:none!important}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <button type="button" class="brand" data-nav="home"><span class="logo" id="app-logo" lang="zh-Hans" aria-hidden="true">孔</span><span class="bt" id="app-title">孔子学院 復習カード</span></button>
+  <nav class="tabs" aria-label="画面切替">
+    <button type="button" data-nav="home">ホーム</button>
+    <button type="button" data-nav="list">一覧</button>
+    <button type="button" data-nav="settings">設定</button>
+  </nav>
+</div></header>
+
+<main class="wrap" id="main">
+  <!-- ホーム / フィルタ -->
+  <section id="v-home" class="view">
+    <div class="panel">
+      <div class="field" id="f-sem-wrap" hidden><label class="lbl" for="f-sem" id="f-sem-lbl">学期</label><select id="f-sem"></select></div>
+      <div class="field"><div class="lbl">方向</div>
+        <div class="seg" id="f-dir" role="group" aria-label="方向"><button type="button" data-v="ja2zh">日→中</button><button type="button" data-v="zh2ja">中→日</button></div></div>
+      <div class="field"><div class="lbl"><span id="f-lessons-lbl">課</span> <span class="sub">（複数選択可）</span></div><div class="checklist" id="f-lessons"></div></div>
+      <div class="field"><div class="lbl">種類</div><div class="chips" id="f-types"></div></div>
+      <div class="field"><div class="lbl">見出し語／関連語</div><div class="chips" id="f-roles"></div></div>
+      <div class="field"><div class="lbl">覚えた状況 <span class="sub" id="f-status-note"></span></div>
+        <div class="seg" id="f-status" role="group" aria-label="覚えた状況"><button type="button" data-v="all">すべて</button><button type="button" data-v="unknown">まだ</button><button type="button" data-v="known">覚えた</button></div></div>
+      <div class="field toggle-row"><div class="lbl" style="margin:0">出題順</div>
+        <div class="seg" id="f-shuffle" role="group" aria-label="出題順" style="flex:1;max-width:240px"><button type="button" data-v="0">資料順</button><button type="button" data-v="1">シャッフル</button></div></div>
+    </div>
+    <div class="home-cta">
+      <div class="count"><b id="h-count">0</b> 枚が該当</div>
+      <button type="button" id="b-resume" class="btn ghost resume" hidden></button>
+      <div class="cta-row">
+        <button type="button" id="b-study" class="btn primary">カードで学習</button>
+        <button type="button" id="b-tolist" class="btn">一覧を見る</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- カード学習 -->
+  <section id="v-study" class="view" hidden>
+    <div class="study-top">
+      <div class="prog"><div class="prog-txt"><span id="s-pos">0 / 0</span><span id="s-dir"></span></div><div class="bar"><i id="s-bar"></i></div></div>
+      <button type="button" id="b-shuffle" class="pill" aria-pressed="false">シャッフル</button>
+      <button type="button" id="b-quit" class="pill">終了</button>
+    </div>
+    <div class="stage">
+      <div class="swipe" id="swipe">
+        <div class="card" id="card" tabindex="0" role="button" aria-label="カード（タップでめくる）">
+          <div class="card-inner">
+            <div class="face front" id="face-front"></div>
+            <div class="face back" id="face-back" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="sw-tag sw-known" id="tag-known" aria-hidden="true">覚えた</div>
+        <div class="sw-tag sw-unknown" id="tag-unknown" aria-hidden="true">まだ</div>
+      </div>
+    </div>
+    <div class="judge">
+      <button type="button" id="b-prev" class="btn">前へ</button>
+      <button type="button" id="b-unknown" class="btn unknown">まだ</button>
+      <button type="button" id="b-known" class="btn known">覚えた</button>
+    </div>
+    <p class="hint-line">タップでめくる ／ 左スワイプ＝まだ ／ 右スワイプ＝覚えた</p>
+  </section>
+
+  <!-- 終了 -->
+  <section id="v-done" class="view" hidden>
+    <div class="panel done">
+      <h2>おつかれさまでした</h2>
+      <div class="score">
+        <div class="sc known"><span>覚えた</span><b id="d-known">0</b></div>
+        <div class="sc unknown"><span>まだ</span><b id="d-unknown">0</b></div>
+      </div>
+      <p class="muted small" id="d-note"></p>
+    </div>
+    <div class="actions">
+      <button type="button" id="b-again" class="btn primary">まだ だけもう一周</button>
+      <button type="button" id="b-restart" class="btn">最初から</button>
+      <button type="button" id="b-done-prev" class="btn ghost">最後の判定を取り消す</button>
+      <button type="button" id="b-home" class="btn ghost">ホームへ</button>
+    </div>
+  </section>
+
+  <!-- 一覧 -->
+  <section id="v-list" class="view" hidden>
+    <div class="search"><input id="l-q" type="search" placeholder="検索（中国語・ピンイン・日本語）" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" aria-label="検索"></div>
+    <p class="muted small" id="l-info" style="margin:8px 0 0"></p>
+    <table class="tbl" id="l-table">
+      <thead><tr><th>中国語</th><th>ピンイン</th><th>日本語</th><th id="l-th-lesson">課</th><th>種類</th><th>状況</th></tr></thead>
+      <tbody id="l-body"></tbody>
+    </table>
+    <p class="empty" id="l-empty" hidden>該当する語がありません</p>
+  </section>
+
+  <!-- 設定 -->
+  <section id="v-settings" class="view" hidden>
+    <div class="panel">
+      <div class="field"><div class="lbl">文字サイズ</div>
+        <div class="seg" data-key="font" role="group" aria-label="文字サイズ"><button type="button" data-v="100">標準</button><button type="button" data-v="115">大</button><button type="button" data-v="130">特大</button></div></div>
+      <div class="field"><div class="lbl">声調の色分け</div>
+        <div class="seg" data-key="tone" role="group" aria-label="声調の色分け"><button type="button" data-v="0">オフ</button><button type="button" data-v="1">オン</button></div>
+        <div class="tone-demo"><span class="t1">mā 1声</span><span class="t2">má 2声</span><span class="t3">mǎ 3声</span><span class="t4">mà 4声</span><span class="t5">ma 軽声</span></div></div>
+      <div class="field"><div class="lbl">めくったとき自動読み上げ</div>
+        <div class="seg" data-key="autoSpeak" role="group" aria-label="自動読み上げ"><button type="button" data-v="0">オフ</button><button type="button" data-v="1">オン</button></div>
+        <p class="set-note" id="tts-status"></p>
+        <button type="button" class="btn ghost" id="tts-test">読み上げテスト（你好）</button>
+        <p class="set-note">iPhone で音が出ないときは、本体横の消音スイッチをオフ（オレンジが見えない状態）にして音量を上げてください。読み上げは本体の消音設定に従います。</p></div>
+    </div>
+    <div class="panel">
+      <div class="lbl">進捗リセット</div>
+      <div class="reset-btns">
+        <button type="button" id="b-reset-filter" class="btn">表示中の絞り込みの進捗をリセット</button>
+        <button type="button" id="b-reset-all" class="btn">すべての進捗をリセット</button>
+      </div>
+      <p class="set-note">「表示中の絞り込み」はホームで選んだ条件に当てはまるカードです（日→中・中→日の両方を消去）。</p>
+    </div>
+    <p class="muted small" id="about" style="text-align:center;margin-top:16px"></p>
+  </section>
+</main>
+
+<div class="modal" id="modal" hidden><div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="m-msg">
+  <p id="m-msg"></p>
+  <div class="m-btns"><button type="button" class="btn" id="m-cancel">キャンセル</button><button type="button" class="btn danger" id="m-ok">OK</button></div>
+</div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+window.CARD_DATA = {"config":{"title":"個別学習 単語カード","semester_label":"年","lesson_label":"記事","lesson_format":"{title}","show_ai_label":false,"source_format":"{lesson}","storage_key":"kojinCards","logo":"個"},"semesters":[{"semester":"2026","lessons":[{"id":1,"title":"202609 人形机器人运动会闭幕","pages":"","date":"2026-09"}],"cards":[{"id":"2026-1-001","lesson":1,"type":"慣用句","role":"見出し語","zh":"画上了圆满句号","pinyin":"huà shàng le yuán mǎn jù hào","ja":"有終の美を飾った／無事に締めくくった","ja_ai":true,"ja_note":"","def_zh":"比喻事情顺利结束，取得完满的结果","def_zh_ai":true,"examples":[{"zh":"8月26日，第二届世界人形机器人运动会结束最后一个比赛日，闭幕式为这场科技与竞技交融的盛会画上了圆满句号。","ja":"8月26日、第2回世界人型ロボット運動会は最後の競技日を終え、閉会式が、科学技術と競技が融合したこの祭典を締めくくった。","ja_ai":false}],"related":["画上圆满句号","画上句号","完美收官"],"parent":"","pages":[2],"notes":"本文の形（了 入り）で採録。辞書形は「画上圆满句号」"},{"id":"2026-1-002","lesson":1,"type":"単語","role":"見出し語","zh":"交融","pinyin":"jiāo róng","ja":"融け合う・融合する","ja_ai":true,"ja_note":"","def_zh":"不同的事物互相融合在一起","def_zh_ai":true,"examples":[{"zh":"8月26日，第二届世界人形机器人运动会结束最后一个比赛日，闭幕式为这场科技与竞技交融的盛会画上了圆满句号。","ja":"8月26日、第2回世界人型ロボット運動会は最後の競技日を終え、閉会式が、科学技術と競技が融合したこの祭典を締めくくった。","ja_ai":false}],"related":["水乳交融","文化交融"],"parent":"","pages":[2],"notes":""},{"id":"2026-1-003","lesson":1,"type":"成語","role":"見出し語","zh":"离弦之箭","pinyin":"lí xián zhī jiàn","ja":"弦を離れた矢（のように速い）","ja_ai":true,"ja_note":"","def_zh":"像离开弓弦的箭一样，形容速度非常快","def_zh_ai":true,"examples":[{"zh":"田径赛场上，机器人如离弦之箭飞速奔跑、灵巧转弯；","ja":"陸上競技場では、ロボットが弦を離れた矢のように疾走し、器用にコーナーを曲がった。","ja_ai":false}],"related":["归心似箭"],"parent":"","pages":[3],"notes":""},{"id":"2026-1-004","lesson":1,"type":"単語","role":"見出し語","zh":"扣杀","pinyin":"kòu shā","ja":"スマッシュ（を打つ）","ja_ai":true,"ja_note":"","def_zh":"球类运动中从高处用力向下击球的进攻动作","def_zh_ai":true,"examples":[{"zh":"网球场上，人形机器人与人类运动员高频对打、救球扣杀；","ja":"テニスコートでは、人型ロボットが人間の選手と速いテンポでラリーを続け、ボールを拾い、スマッシュを決めた。","ja_ai":false}],"related":["救球","对打"],"parent":"","pages":[3],"notes":""},{"id":"2026-1-005","lesson":1,"type":"単語","role":"見出し語","zh":"自如","pinyin":"zì rú","ja":"自在である・思いのままだ","ja_ai":true,"ja_note":"","def_zh":"活动或操作不受阻碍，非常自然流畅","def_zh_ai":true,"examples":[{"zh":"格斗赛场上，机器人的招式连贯自如；","ja":"格闘技の会場では、ロボットの技がよどみなく自在につながった。","ja_ai":false}],"related":["运用自如","连贯自如","进退自如"],"parent":"","pages":[3],"notes":""},{"id":"2026-1-006","lesson":1,"type":"成語","role":"見出し語","zh":"历历在目","pinyin":"lì lì zài mù","ja":"ありありと目に浮かぶ","ja_ai":true,"ja_note":"","def_zh":"过去的情景清清楚楚地出现在眼前","def_zh_ai":true,"examples":[{"zh":"园林、酒店与家庭等场景中，机器人巧妙应对复杂环境，精准完成长流程任务……回顾过去几天的赛事，精彩瞬间历历在目。","ja":"園林、ホテル、家庭などの場面では、ロボットが複雑な環境に巧みに対応し、工程の長いタスクを正確にやり遂げた……。この数日間の競技を振り返ると、素晴らしい瞬間がありありと目に浮かぶ。","ja_ai":false}],"related":["记忆犹新"],"parent":"","pages":[3],"notes":""},{"id":"2026-1-007","lesson":1,"type":"単語","role":"見出し語","zh":"折射","pinyin":"zhé shè","ja":"（物事の様子を）映し出す・反映する","ja_ai":true,"ja_note":"本来は光の「屈折」。転じて、ある事柄が別の事柄の実態を映し出すこと。","def_zh":"原指光线偏折，比喻通过某事反映出另一事物的面貌","def_zh_ai":true,"examples":[{"zh":"这场赛会不仅呈现了高水平的科技竞技，还是一面清晰的镜子，折射出人形机器人从高精尖实验室走向高强度运动与复杂真实场景的。","ja":"この大会は、ハイレベルな科学技術の競い合いを見せただけではない。人型ロボットが最先端の実験室から、高強度の運動と複雑な現実の場面へと飛躍したことを映し出す、曇りのない鏡でもあった。","ja_ai":false}],"related":["折射出","反映"],"parent":"","pages":[4],"notes":"原文 4 段落目は「复杂真实场景的。」の後に語が欠落（訳では「飛躍」）。例文は文一覧のまま"},{"id":"2026-1-008","lesson":1,"type":"単語","role":"見出し語","zh":"高精尖","pinyin":"gāo jīng jiān","ja":"ハイレベル・精密・先端の","ja_ai":true,"ja_note":"「高级、精密、尖端」の略。先端技術分野を指す。","def_zh":"高级、精密、尖端的简称，指技术水平最先进的","def_zh_ai":true,"examples":[{"zh":"这场赛会不仅呈现了高水平的科技竞技，还是一面清晰的镜子，折射出人形机器人从高精尖实验室走向高强度运动与复杂真实场景的。","ja":"この大会は、ハイレベルな科学技術の競い合いを見せただけではない。人型ロボットが最先端の実験室から、高強度の運動と複雑な現実の場面へと飛躍したことを映し出す、曇りのない鏡でもあった。","ja_ai":false}],"related":["高精尖技术","高精尖产业"],"parent":"","pages":[4],"notes":""},{"id":"2026-1-009","lesson":1,"type":"単語","role":"見出し語","zh":"跃升","pinyin":"yuè shēng","ja":"飛躍的に上がる・躍進","ja_ai":true,"ja_note":"","def_zh":"跳跃式地上升，指水平或地位迅速提高","def_zh_ai":true,"examples":[{"zh":"竞技赛场见证技术跃升","ja":"競技場が技術の躍進を見届けた","ja_ai":false}],"related":["技术跃升","跃升为"],"parent":"","pages":[5],"notes":""},{"id":"2026-1-010","lesson":1,"type":"単語","role":"見出し語","zh":"试炼","pinyin":"shì liàn","ja":"試練（にかける）","ja_ai":true,"ja_note":"","def_zh":"经受考验和磨炼","def_zh_ai":true,"examples":[{"zh":"在运动会赛场上，“机械肌骨”得到了一次次试炼。","ja":"運動会の競技場では、「機械の筋骨」が幾度となく試練にさらされた。","ja_ai":false}],"related":["考验","磨炼"],"parent":"","pages":[6],"notes":""},{"id":"2026-1-011","lesson":1,"type":"単語","role":"見出し語","zh":"天工","pinyin":"tiān gōng","ja":"天工（人型ロボットの名）","ja_ai":true,"ja_note":"北京人形机器人创新中心（北京人型ロボットイノベーションセンター）が開発した人型ロボット。","def_zh":"北京人形机器人创新中心研发的人形机器人","def_zh_ai":true,"examples":[{"zh":"在100米赛跑项目中，来自北京人形机器人创新中心的天工机器人取得了8.85秒的成绩，打破了博尔特创下的人类纪录。","ja":"100メートル走では、北京人型ロボットイノベーションセンターの「天工」ロボットが8.85秒を記録し、ボルトが打ち立てた人類の記録を破った。","ja_ai":false}],"related":[],"parent":"","pages":[7],"notes":"固有名詞"},{"id":"2026-1-012","lesson":1,"type":"単語","role":"見出し語","zh":"博尔特","pinyin":"bó ěr tè","ja":"ボルト（陸上短距離選手）","ja_ai":true,"ja_note":"ウサイン・ボルト。ジャマイカの陸上短距離選手で、100m の世界記録保持者。","def_zh":"牙买加短跑运动员，男子百米世界纪录保持者","def_zh_ai":true,"examples":[{"zh":"在100米赛跑项目中，来自北京人形机器人创新中心的天工机器人取得了8.85秒的成绩，打破了博尔特创下的人类纪录。","ja":"100メートル走では、北京人型ロボットイノベーションセンターの「天工」ロボットが8.85秒を記録し、ボルトが打ち立てた人類の記録を破った。","ja_ai":false}],"related":[],"parent":"","pages":[7],"notes":"固有名詞"},{"id":"2026-1-013","lesson":1,"type":"単語","role":"見出し語","zh":"夺冠","pinyin":"duó guàn","ja":"優勝する・タイトルを取る","ja_ai":true,"ja_note":"","def_zh":"在比赛中夺得冠军","def_zh_ai":true,"examples":[{"zh":"在1500米决赛中，天卓队以2分21秒63的惊人成绩夺冠，比人类男子1500米3分26秒00的世界纪录快了一分多钟。","ja":"1500メートル決勝では、天卓チームが2分21秒63という驚異的なタイムで優勝し、人間の男子1500メートル世界記録である3分26秒00より1分以上速かった。","ja_ai":false}],"related":["卫冕","摘金"],"parent":"","pages":[7],"notes":""},{"id":"2026-1-014","lesson":1,"type":"単語","role":"見出し語","zh":"刷新","pinyin":"shuā xīn","ja":"（記録・認識を）塗り替える","ja_ai":true,"ja_note":"","def_zh":"突破原有的纪录或认识，创造新的","def_zh_ai":true,"examples":[{"zh":"此外，在立定跳高、100米、400米等项目中，机器人同样交出超越人类最好成绩的表现，刷新了人们对机器人运动控制与物理极限的认知。","ja":"このほか、立ち高跳び、100メートル、400メートルなどの種目でも、ロボットは人間の最高記録を超える成績を出し、ロボットの運動制御と物理的限界についての人々の認識を塗り替えた。","ja_ai":false}],"related":["刷新纪录","刷新认知"],"parent":"","pages":[8],"notes":""},{"id":"2026-1-015","lesson":1,"type":"単語","role":"見出し語","zh":"强化学习","pinyin":"qiáng huà xué xí","ja":"強化学習","ja_ai":true,"ja_note":"AI の機械学習の一手法。試行錯誤と報酬によって最適な行動を学ぶ。","def_zh":"机器通过试错和奖励反馈来学习最优行为的方法","def_zh_ai":true,"examples":[{"zh":"北京人形机器人创新中心运动控制算法专家韩刚分析，机器人运动性能的提升，本质上源于运动控制大模型与强化学习算法的深度融合。","ja":"北京人型ロボットイノベーションセンターの運動制御アルゴリズム専門家である韓剛氏は、ロボットの運動性能の向上は、本質的には運動制御の大規模モデルと強化学習アルゴリズムの深い融合によるものだと分析する。","ja_ai":false}],"related":["深度学习","算法"],"parent":"","pages":[9],"notes":""},{"id":"2026-1-016","lesson":1,"type":"単語","role":"見出し語","zh":"大模型","pinyin":"dà mó xíng","ja":"大規模モデル（AI）","ja_ai":true,"ja_note":"大量のデータで訓練した大規模な AI モデル。","def_zh":"参数规模巨大、经大量数据训练的人工智能模型","def_zh_ai":true,"examples":[{"zh":"北京人形机器人创新中心运动控制算法专家韩刚分析，机器人运动性能的提升，本质上源于运动控制大模型与强化学习算法的深度融合。","ja":"北京人型ロボットイノベーションセンターの運動制御アルゴリズム専門家である韓剛氏は、ロボットの運動性能の向上は、本質的には運動制御の大規模モデルと強化学習アルゴリズムの深い融合によるものだと分析する。","ja_ai":false}],"related":["具身大模型","语言大模型"],"parent":"","pages":[9],"notes":""},{"id":"2026-1-017","lesson":1,"type":"単語","role":"見出し語","zh":"迭代","pinyin":"dié dài","ja":"反復・改良を重ねる","ja_ai":true,"ja_note":"","def_zh":"不断重复并改进，使结果越来越好","def_zh_ai":true,"examples":[{"zh":"“例如，比赛中机器人展现出的跑姿，是算法在虚拟物理世界中经数百万次迭代后自主演化出的最优解。”","ja":"「たとえば、競技中にロボットが見せた走行フォームは、アルゴリズムが仮想の物理世界で数百万回の反復を経て、自ら進化させた最適解です」","ja_ai":false},{"zh":"“园林场景是很好的技术试验场，我们可以对比实验室仿真环境与现实环境之间的差异，在实战中查找短板，为后续算法迭代积累宝贵实测数据。”","ja":"「園林の場面は格好の技術実験場です。実験室のシミュレーション環境と現実環境の差を比べ、実戦の中で弱点を見つけ、今後のアルゴリズム改良に向けて貴重な実測データを蓄積できます」","ja_ai":false}],"related":["算法迭代","迭代升级","更新迭代"],"parent":"","pages":[10,17],"notes":""},{"id":"2026-1-018","lesson":1,"type":"単語","role":"見出し語","zh":"博弈","pinyin":"bó yì","ja":"駆け引き・ゲーム（理論）","ja_ai":true,"ja_note":"","def_zh":"双方在对抗中根据对方行动作出判断和选择","def_zh_ai":true,"examples":[{"zh":"银河通用机器人创始人兼首席技术官王鹤表示，网球等复杂高动态运动对机器人的感知、预判及动态博弈提出了极高要求。","ja":"銀河通用機器人（Galbot）の創業者兼最高技術責任者である王鶴氏は、テニスのような複雑で動きの激しい運動は、ロボットの知覚、予測、動的な駆け引きに極めて高い水準を求めると語る。","ja_ai":false}],"related":["动态博弈","博弈论"],"parent":"","pages":[11],"notes":""},{"id":"2026-1-019","lesson":1,"type":"成語","role":"見出し語","zh":"不容小觑","pinyin":"bù róng xiǎo qù","ja":"侮れない","ja_ai":true,"ja_note":"","def_zh":"不能轻视，不可小看","def_zh_ai":true,"examples":[{"zh":"集体项目的技术含量同样不容小觑。","ja":"団体種目の技術水準も侮れない。","ja_ai":false}],"related":["不可小觑","不容忽视"],"parent":"","pages":[12],"notes":""},{"id":"2026-1-020","lesson":1,"type":"単語","role":"見出し語","zh":"闭环","pinyin":"bì huán","ja":"閉ループ・一貫した仕組み","ja_ai":true,"ja_note":"制御工学の「クローズドループ」。転じて、各段階が途切れずにつながり完結した仕組み。","def_zh":"首尾相接、可自我反馈与完善的完整体系","def_zh_ai":true,"examples":[{"zh":"北京人形机器人创新中心运控部负责人徐志远指出，以啦啦操项目为例，机器人已实现了三大能力闭环：无须外部基站的自主里程计与状态估计、平台中枢统一调度的多机群体协同控制、对跳跃转体等高难度动作的稳定复现。","ja":"北京人型ロボットイノベーションセンター運動制御部責任者の徐志遠氏は、チアリーディング種目を例に、ロボットがすでに3つの能力を一貫して実現していると指摘する。すなわち、外部基地局を必要としない自律的なオドメトリ（自己位置推定）と状態推定、プラットフォームの中枢が一元的に指揮する複数機の群協調制御、ジャンプしながらの回転など高難度動作の安定した再現である。","ja_ai":false}],"related":["形成闭环","能力闭环"],"parent":"","pages":[12],"notes":""},{"id":"2026-1-021","lesson":1,"type":"単語","role":"見出し語","zh":"落地","pinyin":"luò dì","ja":"（計画・技術が）実用化される","ja_ai":true,"ja_note":"","def_zh":"计划、技术等真正实施或投入实际应用","def_zh_ai":true,"examples":[{"zh":"“本次比赛验证了机器人的无基站集群演出能力，为赛事活动、文旅商业等场景落地筑牢了技术根基。”","ja":"「今回の競技で、基地局なしで集団演技ができることが実証され、競技イベントや文化観光・商業などの場面で実用化するための技術的土台が固まりました」","ja_ai":false}],"related":["场景落地","政策落地"],"parent":"","pages":[13],"notes":""},{"id":"2026-1-022","lesson":1,"type":"単語","role":"見出し語","zh":"筑牢","pinyin":"zhù láo","ja":"しっかり築く・固める","ja_ai":true,"ja_note":"","def_zh":"建造得牢固，比喻打下坚实的基础","def_zh_ai":true,"examples":[{"zh":"“本次比赛验证了机器人的无基站集群演出能力，为赛事活动、文旅商业等场景落地筑牢了技术根基。”","ja":"「今回の競技で、基地局なしで集団演技ができることが実証され、競技イベントや文化観光・商業などの場面で実用化するための技術的土台が固まりました」","ja_ai":false}],"related":["筑牢根基","筑牢防线"],"parent":"","pages":[13],"notes":""},{"id":"2026-1-023","lesson":1,"type":"成語","role":"見出し語","zh":"绿树成荫","pinyin":"lǜ shù chéng yīn","ja":"木々が茂って木陰をなす","ja_ai":true,"ja_note":"","def_zh":"绿色的树木很多，形成大片树荫","def_zh_ai":true,"examples":[{"zh":"在户外展开的园林场景赛当中，绿树成荫、路面起伏的真实环境给机器人带来了严峻考验。","ja":"屋外で行われた園林場面の競技では、木々が茂り、路面に起伏のある実環境がロボットに厳しい試練を与えた。","ja_ai":false}],"related":[],"parent":"","pages":[16],"notes":""},{"id":"2026-1-024","lesson":1,"type":"単語","role":"見出し語","zh":"严峻","pinyin":"yán jùn","ja":"厳しい・深刻な","ja_ai":true,"ja_note":"","def_zh":"严重而艰难，形容形势或考验很重","def_zh_ai":true,"examples":[{"zh":"在户外展开的园林场景赛当中，绿树成荫、路面起伏的真实环境给机器人带来了严峻考验。","ja":"屋外で行われた園林場面の競技では、木々が茂り、路面に起伏のある実環境がロボットに厳しい試練を与えた。","ja_ai":false}],"related":["严峻考验","形势严峻"],"parent":"","pages":[16],"notes":""},{"id":"2026-1-025","lesson":1,"type":"単語","role":"見出し語","zh":"劝导","pinyin":"quàn dǎo","ja":"説得して導く・注意を促す","ja_ai":true,"ja_note":"","def_zh":"耐心劝说并加以引导","def_zh_ai":true,"examples":[{"zh":"比赛中，机器人不仅可以扫描识别出携带卡式炉等禁带物品的露营车并进行语，还能自动辨识并对躺卧座椅的不文明行为进行文明劝导。","ja":"競技中、ロボットはカセットコンロなどの持込禁止物品を積んだキャンプ用カートをスキャンして識別し、音声で注意を促しただけでなく、ベンチに寝そべるマナー違反を自動的に見分け、マナーを守るよう呼びかけることもできた。","ja_ai":false}],"related":["文明劝导","劝说"],"parent":"","pages":[16],"notes":"原文 16 段落 2 文は「进行语」の後に語が欠落（訳では「音声で注意を促し」）。例文は文一覧のまま"},{"id":"2026-1-026","lesson":1,"type":"単語","role":"見出し語","zh":"短板","pinyin":"duǎn bǎn","ja":"弱点・ネック","ja_ai":true,"ja_note":"「木桶の一番短い板」が容量を決める、という比喩から。","def_zh":"比喻整体中最薄弱、最需要补足的部分","def_zh_ai":true,"examples":[{"zh":"“园林场景是很好的技术试验场，我们可以对比实验室仿真环境与现实环境之间的差异，在实战中查找短板，为后续算法迭代积累宝贵实测数据。”","ja":"「園林の場面は格好の技術実験場です。実験室のシミュレーション環境と現実環境の差を比べ、実戦の中で弱点を見つけ、今後のアルゴリズム改良に向けて貴重な実測データを蓄積できます」","ja_ai":false}],"related":["补短板","查找短板"],"parent":"","pages":[17],"notes":""},{"id":"2026-1-027","lesson":1,"type":"単語","role":"見出し語","zh":"围观","pinyin":"wéi guān","ja":"取り囲んで見る・見物する","ja_ai":true,"ja_note":"","def_zh":"许多人围在周围观看","def_zh_ai":true,"examples":[{"zh":"在家庭场景赛中，机器人同样展现出完成叠衣、整理等高复杂度长流程任务的能力，引发了观众的围观和赞叹。","ja":"家庭場面の競技でも、ロボットは衣類をたたむ、片付けるといった複雑で工程の長いタスクをこなし、観客が取り囲んで感嘆の声を上げた。","ja_ai":false}],"related":["引发围观"],"parent":"","pages":[18],"notes":""},{"id":"2026-1-028","lesson":1,"type":"単語","role":"見出し語","zh":"遥操作","pinyin":"yáo cāo zuò","ja":"遠隔操作","ja_ai":true,"ja_note":"人が離れた場所からロボットを操作する方式。全自律方式と対比される。","def_zh":"人在远处通过设备操控机器人完成动作","def_zh_ai":true,"examples":[{"zh":"“本届运动会场景赛规定，采用全自主方式的分值权重为1.0，而遥操作方式只有0.5，系数相差一倍。”","ja":"「今大会の場面別競技では、完全自律方式の配点の重みを1.0、遠隔操作方式を0.5と定めており、係数に2倍の差があります」。","ja_ai":false}],"related":["全自主","远程操控"],"parent":"","pages":[19],"notes":""},{"id":"2026-1-029","lesson":1,"type":"単語","role":"見出し語","zh":"摆脱","pinyin":"bǎi tuō","ja":"抜け出す・脱する","ja_ai":true,"ja_note":"","def_zh":"脱离不利的状况或束缚","def_zh_ai":true,"examples":[{"zh":"赛事组委会委员、中国软件评测中心副主任巩潇指出，这一规则设置正是为了引导机器人摆脱对人工干预的依赖，真正具备自主感知与决策能力，成为人类的好帮手。","ja":"大会組織委員会委員で中国ソフトウェア評価センター（中国軟件評測中心）副主任の鞏瀟氏は、このルールはロボットが人の介入への依存から脱し、自律的な知覚と意思決定の能力を真に備えて、人間の良き助け手となるよう導くためのものだと指摘する。","ja_ai":false},{"zh":"人形机器人正加速摆脱预设脚本，从赛场试验场迈向广阔的现实应用场景。","ja":"人型ロボットは、あらかじめ決められた台本から急速に離れ、競技場という実験場から広大な現実の応用場面へと歩みを進めている。","ja_ai":false}],"related":["摆脱依赖","摆脱困境"],"parent":"","pages":[19,20],"notes":""},{"id":"2026-1-030","lesson":1,"type":"単語","role":"見出し語","zh":"干预","pinyin":"gān yù","ja":"介入（する）・干渉","ja_ai":true,"ja_note":"","def_zh":"过问或参与别人的事，施加影响","def_zh_ai":true,"examples":[{"zh":"赛事组委会委员、中国软件评测中心副主任巩潇指出，这一规则设置正是为了引导机器人摆脱对人工干预的依赖，真正具备自主感知与决策能力，成为人类的好帮手。","ja":"大会組織委員会委員で中国ソフトウェア評価センター（中国軟件評測中心）副主任の鞏瀟氏は、このルールはロボットが人の介入への依存から脱し、自律的な知覚と意思決定の能力を真に備えて、人間の良き助け手となるよう導くためのものだと指摘する。","ja_ai":false}],"related":["人工干预","干涉"],"parent":"","pages":[19],"notes":""},{"id":"2026-1-031","lesson":1,"type":"単語","role":"見出し語","zh":"具身大模型","pinyin":"jù shēn dà mó xíng","ja":"身体性 AI の大規模モデル","ja_ai":true,"ja_note":"「具身智能」（エンボディド AI）は、ロボットなど身体を持ち、環境と相互作用しながら知覚・判断・行動する AI。","def_zh":"让机器人等有身体的智能体感知并行动的大模型","def_zh_ai":true,"examples":[{"zh":"“场景赛难度的跨越，有力检验了具身大模型的真实能力边界。”","ja":"「場面別競技の難度が飛躍的に上がったことで、エンボディド（身体性を持つ）大規模モデルの実際の能力の限界が確かに検証されました」","ja_ai":false}],"related":["具身智能","大模型"],"parent":"","pages":[20],"notes":""},{"id":"2026-1-032","lesson":1,"type":"単語","role":"見出し語","zh":"瓶颈","pinyin":"píng jǐng","ja":"ボトルネック","ja_ai":true,"ja_note":"","def_zh":"比喻事情发展中最难突破的关键环节","def_zh_ai":true,"examples":[{"zh":"王鹤分析，机器人具有“一脑多用”的能力，虽然目前在陌生场景下仍面临数据采集与性价比等瓶颈，但随着模型“举一反三”泛化能力的提升，新任务训练成本将快速下降。","ja":"ロボットは「一つの頭脳を多用途に使う」能力を持つ。現状では、未知の場面でデータ収集やコスト対効果といったボトルネックに直面しているものの、モデルが「一を聞いて十を知る」汎化能力を高めるにつれ、新しいタスクの訓練コストは急速に下がるという。","ja_ai":false}],"related":["面临瓶颈","突破瓶颈"],"parent":"","pages":[20],"notes":""},{"id":"2026-1-033","lesson":1,"type":"単語","role":"見出し語","zh":"性价比","pinyin":"xìng jià bǐ","ja":"コストパフォーマンス","ja_ai":true,"ja_note":"","def_zh":"性能与价格的比例，指花钱是否划算","def_zh_ai":true,"examples":[{"zh":"王鹤分析，机器人具有“一脑多用”的能力，虽然目前在陌生场景下仍面临数据采集与性价比等瓶颈，但随着模型“举一反三”泛化能力的提升，新任务训练成本将快速下降。","ja":"ロボットは「一つの頭脳を多用途に使う」能力を持つ。現状では、未知の場面でデータ収集やコスト対効果といったボトルネックに直面しているものの、モデルが「一を聞いて十を知る」汎化能力を高めるにつれ、新しいタスクの訓練コストは急速に下がるという。","ja_ai":false}],"related":["高性价比"],"parent":"","pages":[20],"notes":""},{"id":"2026-1-034","lesson":1,"type":"成語","role":"見出し語","zh":"举一反三","pinyin":"jǔ yī fǎn sān","ja":"一を聞いて十を知る","ja_ai":true,"ja_note":"","def_zh":"从一件事情类推而知道其他许多事情","def_zh_ai":true,"examples":[{"zh":"王鹤分析，机器人具有“一脑多用”的能力，虽然目前在陌生场景下仍面临数据采集与性价比等瓶颈，但随着模型“举一反三”泛化能力的提升，新任务训练成本将快速下降。","ja":"ロボットは「一つの頭脳を多用途に使う」能力を持つ。現状では、未知の場面でデータ収集やコスト対効果といったボトルネックに直面しているものの、モデルが「一を聞いて十を知る」汎化能力を高めるにつれ、新しいタスクの訓練コストは急速に下がるという。","ja_ai":false}],"related":["触类旁通","闻一知十"],"parent":"","pages":[20],"notes":""},{"id":"2026-1-035","lesson":1,"type":"単語","role":"見出し語","zh":"泛化","pinyin":"fàn huà","ja":"汎化（AI）","ja_ai":true,"ja_note":"AI 用語。学習したことを未知のデータや場面にも応用できること。","def_zh":"把学到的规律推广应用到新的情况中","def_zh_ai":true,"examples":[{"zh":"王鹤分析，机器人具有“一脑多用”的能力，虽然目前在陌生场景下仍面临数据采集与性价比等瓶颈，但随着模型“举一反三”泛化能力的提升，新任务训练成本将快速下降。","ja":"ロボットは「一つの頭脳を多用途に使う」能力を持つ。現状では、未知の場面でデータ収集やコスト対効果といったボトルネックに直面しているものの、モデルが「一を聞いて十を知る」汎化能力を高めるにつれ、新しいタスクの訓練コストは急速に下がるという。","ja_ai":false}],"related":["泛化能力"],"parent":"","pages":[20],"notes":""},{"id":"2026-1-036","lesson":1,"type":"単語","role":"見出し語","zh":"蜕变","pinyin":"tuì biàn","ja":"（質的な）変貌・脱皮","ja_ai":true,"ja_note":"","def_zh":"比喻事物发生根本性的变化","def_zh_ai":true,"examples":[{"zh":"从竞技极限的刷新到多元场景的突破，第二届世界人形机器人运动会不仅见证了技术的惊人蜕变，更勾勒出人机共生、智能赋能的未来蓝图。","ja":"競技の限界の更新から多様な場面での突破まで、第2回世界人型ロボット運動会は技術の驚くべき変貌を見届けただけでなく、人と機械が共生し、知能が力を与える未来の青写真をも描き出した。","ja_ai":false}],"related":["华丽蜕变"],"parent":"","pages":[21],"notes":""},{"id":"2026-1-037","lesson":1,"type":"単語","role":"見出し語","zh":"勾勒","pinyin":"gōu lè","ja":"描き出す・輪郭を描く","ja_ai":true,"ja_note":"","def_zh":"用线条画出轮廓，比喻简要地描绘","def_zh_ai":true,"examples":[{"zh":"从竞技极限的刷新到多元场景的突破，第二届世界人形机器人运动会不仅见证了技术的惊人蜕变，更勾勒出人机共生、智能赋能的未来蓝图。","ja":"競技の限界の更新から多様な場面での突破まで、第2回世界人型ロボット運動会は技術の驚くべき変貌を見届けただけでなく、人と機械が共生し、知能が力を与える未来の青写真をも描き出した。","ja_ai":false}],"related":["勾勒蓝图","勾勒出"],"parent":"","pages":[21],"notes":""},{"id":"2026-1-038","lesson":1,"type":"単語","role":"見出し語","zh":"赋能","pinyin":"fù néng","ja":"力を与える・エンパワーする","ja_ai":true,"ja_note":"","def_zh":"赋予某种能力，使其发挥更大作用","def_zh_ai":true,"examples":[{"zh":"从竞技极限的刷新到多元场景的突破，第二届世界人形机器人运动会不仅见证了技术的惊人蜕变，更勾勒出人机共生、智能赋能的未来蓝图。","ja":"競技の限界の更新から多様な場面での突破まで、第2回世界人型ロボット運動会は技術の驚くべき変貌を見届けただけでなく、人と機械が共生し、知能が力を与える未来の青写真をも描き出した。","ja_ai":false}],"related":["智能赋能","科技赋能"],"parent":"","pages":[21],"notes":""},{"id":"2026-1-039","lesson":1,"type":"単語","role":"見出し語","zh":"蓝图","pinyin":"lán tú","ja":"青写真・ビジョン","ja_ai":true,"ja_note":"","def_zh":"比喻对未来的规划或设想","def_zh_ai":true,"examples":[{"zh":"从竞技极限的刷新到多元场景的突破，第二届世界人形机器人运动会不仅见证了技术的惊人蜕变，更勾勒出人机共生、智能赋能的未来蓝图。","ja":"競技の限界の更新から多様な場面での突破まで、第2回世界人型ロボット運動会は技術の驚くべき変貌を見届けただけでなく、人と機械が共生し、知能が力を与える未来の青写真をも描き出した。","ja_ai":false}],"related":["未来蓝图","发展蓝图"],"parent":"","pages":[21],"notes":""}]}]};
+</script>
+<script>
+(function(){
+'use strict';
+
+/* ---------- 開発用サンプルデータ（CARD_DATA が null のとき使用） ---------- */
+var SAMPLE = {
+  semester: "2026春",
+  lessons: [
+    {id: 1, title: "张雪：按照你想干的去干，一直干", pages: "1-44"},
+    {id: 2, title: "示例课：守得云开见月明", pages: "45-80"}
+  ],
+  cards: [
+    {id:"2026春-1-001",lesson:1,type:"単語",role:"見出し語",zh:"出圈",pinyin:"chū quān",
+     ja:"広い層に拡散する／一般層に知られるようになる",ja_ai:false,
+     ja_note:"「圈」は仲間内・特定のファン層などの小さな範囲を指す。ある分野の中だけで知られていた人や作品が、その外側の一般層にまで広く知られるようになることをいう。",
+     def_zh:"突破原有小范围，被更广泛的人群关注或传播",def_zh_ai:false,
+     examples:[
+       {zh:"这部小众电影突然出圈，被很多不看电影的人也关注到了。",ja:"このマイナーな映画は突然ブレイクし、普段映画を見ない多くの人にも注目された。",ja_ai:true},
+       {zh:"他的一段视频在网上出圈了。",ja:"彼の動画がネットで広く拡散した。",ja_ai:false},
+       {zh:"想要出圈，内容必须有自己的特色。",ja:"広く知られるには、内容に独自の特色がなければならない。",ja_ai:true}],
+     related:["破圈","草根群体"],parent:"",pages:[7,12],notes:""},
+    {id:"2026春-1-002",lesson:1,type:"単語",role:"見出し語",zh:"草根",pinyin:"cǎo gēn",
+     ja:"庶民／一般の人々",ja_ai:false,def_zh:"比喻普通百姓、基层群众",def_zh_ai:false,
+     examples:[
+       {zh:"他是从草根成长起来的明星。",ja:"彼は庶民から成り上がったスターだ。",ja_ai:false},
+       {zh:"草根赛事越来越受欢迎。",ja:"草の根の大会がますます人気になっている。",ja_ai:true}],
+     related:["草根群体","草根赛事"],parent:"",pages:[8],notes:""},
+    {id:"2026春-1-003",lesson:1,type:"単語",role:"見出し語",zh:"瓶颈",pinyin:"píng jǐng",
+     ja:"ボトルネック／行き詰まり",ja_ai:false,def_zh:"比喻事情进行中容易发生阻碍的关键环节",def_zh_ai:false,
+     examples:[
+       {zh:"我的汉语学习遇到了瓶颈。",ja:"私の中国語学習は行き詰まった。",ja_ai:false},
+       {zh:"公司发展进入了瓶颈期。",ja:"会社の発展は停滞期に入った。",ja_ai:true}],
+     related:["瓶颈期","突破瓶颈"],parent:"",pages:[15],notes:""},
+    {id:"2026春-1-004",lesson:1,type:"成語",role:"見出し語",zh:"可见一斑",pinyin:"kě jiàn yī bān",
+     ja:"一端からも全体がうかがえる",ja_ai:true,
+     ja_note:"斑：まだら模様。竹の筒から豹をのぞくと、全体を見ることはできないが、体の一部の斑紋は見ることができる。そこから、物事の一部分から全体の様子を推し量ることができるというたとえである。",def_zh:"比喻从观察到的部分，可以推测到全貌",def_zh_ai:false,
+     examples:[{zh:"从这件小事上，他的性格可见一斑。",ja:"この小さな出来事からも、彼の性格がうかがえる。",ja_ai:false}],
+     related:["管中窥豹"],parent:"",pages:[20],notes:""},
+    {id:"2026春-1-005",lesson:1,type:"成語",role:"関連語",zh:"管中窥豹",pinyin:"guǎn zhōng kuī bào",
+     ja:"管の穴から豹をのぞく（一部から全体を推し量る）",ja_ai:true,def_zh:"比喻只看到事物的一部分，也比喻从观察到的部分可以推测全貌",def_zh_ai:true,
+     examples:[],related:["可见一斑"],parent:"可见一斑",pages:[20],notes:""},
+    {id:"2026春-1-006",lesson:1,type:"成語",role:"見出し語",zh:"有口皆碑",pinyin:"yǒu kǒu jiē bēi",
+     ja:"誰もが褒めたたえる",ja_ai:false,def_zh:"比喻人人称赞",def_zh_ai:false,
+     examples:[
+       {zh:"他的人品在村里有口皆碑。",ja:"彼の人柄は村中で評判だ。",ja_ai:false},
+       {zh:"这家餐厅的服务有口皆碑。",ja:"このレストランのサービスは誰もが褒める。",ja_ai:true},
+       {zh:"张老师的教学水平有口皆碑。",ja:"張先生の教え方は誰もが認めている。",ja_ai:true}],
+     related:["口碑","交口称赞"],parent:"",pages:[25,26],notes:""},
+    {id:"2026春-1-007",lesson:1,type:"単語",role:"見出し語",zh:"潜力股",pinyin:"qián lì gǔ",
+     ja:"将来性のある人（株）",ja_ai:false,def_zh:"比喻有发展潜力的人或事物",def_zh_ai:false,
+     examples:[{zh:"公司认为他是一只潜力股。",ja:"会社は彼を将来有望な人材だと考えている。",ja_ai:false}],
+     related:[],parent:"",pages:[30],notes:""},
+    {id:"2026春-1-008",lesson:1,type:"慣用句",role:"見出し語",zh:"一步一个脚印",pinyin:"yí bù yí gè jiǎo yìn",
+     ja:"一歩一歩着実に",ja_ai:false,def_zh:"比喻做事踏实",def_zh_ai:false,
+     examples:[{zh:"学习要一步一个脚印，不能急于求成。",ja:"勉強は一歩ずつ着実に。焦って結果を求めてはいけない。",ja_ai:true}],
+     related:["脚踏实地"],parent:"",pages:[40],notes:""},
+    {id:"2026春-2-001",lesson:2,type:"慣用句",role:"見出し語",zh:"守得云开见月明",pinyin:"shǒu dé yún kāi jiàn yuè míng",
+     ja:"耐え抜けば雲が晴れて月が見える（辛抱すれば報われる）",ja_ai:false,def_zh:"比喻坚持下去，终会等到好的结果",def_zh_ai:true,
+     examples:[
+       {zh:"只要坚持努力，总有一天会守得云开见月明。",ja:"努力を続ければ、いつかきっと報われる日が来る。",ja_ai:true},
+       {zh:"他创业十年，终于守得云开见月明。",ja:"彼は起業して十年、ついに報われた。",ja_ai:true}],
+     related:["苦尽甘来"],parent:"",pages:[52],notes:""},
+    {id:"2026春-2-002",lesson:2,type:"成語",role:"関連語",zh:"苦尽甘来",pinyin:"kǔ jìn gān lái",
+     ja:"苦労が終わって楽しい時が来る",ja_ai:true,def_zh:"",def_zh_ai:false,
+     examples:[],related:[],parent:"守得云开见月明",pages:[52],notes:""},
+    {id:"2026春-2-003",lesson:2,type:"単語",role:"見出し語",zh:"垮",pinyin:"kuǎ",
+     ja:"崩れる／倒れる／（体を）壊す",ja_ai:false,
+     ja_note:"建物などが崩れるという意味のほか、「累垮」「压垮」のように動詞の後ろに付いて、疲労や重圧で体や気持ちが持たなくなる結果を表す。",def_zh:"倒塌；坍下；比喻失败或身体支持不住",def_zh_ai:false,
+     examples:[
+       {zh:"连续加班把他的身体累垮了。",ja:"連日の残業で彼は体を壊した。",ja_ai:false},
+       {zh:"那座旧桥被洪水冲垮了。",ja:"その古い橋は洪水で流された。",ja_ai:true},
+       {zh:"不要被眼前的困难压垮。",ja:"目の前の困難に押しつぶされないで。",ja_ai:true}],
+     related:["累垮","冲垮","压垮"],parent:"",pages:[55],notes:""},
+    {id:"2026春-2-004",lesson:2,type:"成語",role:"見出し語",zh:"死缠烂打",pinyin:"sǐ chán làn dǎ",
+     ja:"しつこくつきまとう／粘り強く食い下がる",ja_ai:false,def_zh:"形容纠缠不休，不肯放弃",def_zh_ai:false,
+     examples:[{zh:"他靠死缠烂打终于拿下了这个客户。",ja:"彼はしつこく食い下がって、ついにこの顧客を獲得した。",ja_ai:true}],
+     related:[],parent:"",pages:[61],notes:""},
+    {id:"2026春-2-005",lesson:2,type:"単語",role:"見出し語",zh:"折腾",pinyin:"zhē teng",
+     ja:"あれこれやってみる／苦しめる",ja_ai:true,def_zh:"反复做某事；折磨",def_zh_ai:true,
+     examples:[{zh:"别再瞎折腾了。",ja:"もうむやみにあれこれするのはやめなさい。",ja_ai:true}],
+     related:[],parent:"",pages:[70],notes:"ピンイン補完"},
+    {id:"2026春-2-006",lesson:2,type:"単語",role:"見出し語",zh:"一会儿",pinyin:"yí huìr",
+     ja:"少しの間／しばらく",ja_ai:true,def_zh:"很短的时间",def_zh_ai:true,
+     examples:[],related:[],parent:"",pages:[72],notes:"ピンイン補完"}
+  ]
+};
+
+/* ---------- 共通 ---------- */
+function $(s, r){ return (r || document).querySelector(s); }
+function $$(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(ch){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]; }); }
+var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var TYPES = ['単語','成語','慣用句'];
+var ROLES = ['見出し語','関連語'];
+var DIR_LABEL = {ja2zh:'日→中', zh2ja:'中→日'};
+/* ---------- 単語帳ごとの設定（CARD_DATA.config。省略時は孔子学院 復習カードの表示） ---------- */
+var CFG_DEF = {
+  title: '孔子学院 復習カード',          // ヘッダー・タブ・ホーム画面名
+  semester_label: '学期',               // 学期の呼び方（絞り込みの見出し）
+  lesson_label: '課',                   // 課の呼び方（絞り込み・一覧の見出し）
+  lesson_format: '第{id}課',            // 課の表記。{id} {title} を置換
+  show_ai_label: true,                  // false なら「補訳」ラベルを出さない
+  source_format: '{lesson} p{pages}',   // カード隅の出典。{lesson} {pages} を置換
+  logo: '',                             // ヘッダーのロゴ 1 文字（空なら title の先頭文字）
+  storage_key: 'kzxyCards'              // localStorage のキー接頭辞（単語帳ごとに変える）
+};
+var CFG = (function(raw){
+  var c = {};
+  raw = (raw && typeof raw === 'object' && !Array.isArray(raw)) ? raw : {};
+  Object.keys(CFG_DEF).forEach(function(k){
+    var d = CFG_DEF[k], v = raw[k];
+    if (typeof d === 'boolean') c[k] = typeof v === 'boolean' ? v : d;
+    else c[k] = (typeof v === 'string' && v.trim()) ? v.trim() : d;
+  });
+  if (!c.logo) c.logo = Array.from(c.title)[0] || '';
+  else c.logo = Array.from(c.logo)[0];
+  return c;
+})(window.CARD_DATA && window.CARD_DATA.config);
+function fmt(tpl, vars){
+  return String(tpl).replace(/\{(\w+)\}/g, function(m, k){ return Object.prototype.hasOwnProperty.call(vars, k) ? String(vars[k] == null ? '' : vars[k]) : m; });
+}
+var LESSON_HAS_TITLE = CFG.lesson_format.indexOf('{title}') >= 0;
+function lessonText(l){
+  var s = fmt(CFG.lesson_format, {id: l.id, title: l.title}).trim();
+  return s || (CFG.lesson_label + l.id);   // title が空のときなど
+}
+var AI = CFG.show_ai_label ? '<span class="ai" lang="ja" title="資料に無く、AI が補った訳">補訳</span>' : '';
+var ICON_SPK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+
+/* ---------- データ正規化 ---------- */
+function normalize(raw){
+  var list = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.semesters)) ? raw.semesters : [raw];
+  list = list.filter(function(s){ return s && Array.isArray(s.cards); });
+  if (!list.length) list = [SAMPLE];
+  return list.map(function(s, si){
+    var sem = String(s.semester || (CFG.semester_label + (si + 1)));
+    var cards = s.cards.filter(function(c){ return c && c.zh; }).map(function(c, i){
+      return {
+        id: String(c.id || (sem + '-' + i)), lesson: Number(c.lesson) || 0,
+        type: c.type || '単語', role: c.role || '見出し語',
+        zh: String(c.zh), pinyin: String(c.pinyin || ''), ja: String(c.ja || ''), ja_ai: !!c.ja_ai, ja_note: String(c.ja_note || ''),
+        def_zh: String(c.def_zh || ''), def_zh_ai: !!c.def_zh_ai,
+        examples: Array.isArray(c.examples) ? c.examples.filter(function(e){ return e && e.zh; }) : [],
+        related: Array.isArray(c.related) ? c.related.filter(Boolean) : [],
+        parent: c.parent || '', pages: Array.isArray(c.pages) ? c.pages : [], _o: i
+      };
+    });
+    var lessons = Array.isArray(s.lessons) ? s.lessons.map(function(l){
+      return {id: Number(l.id), title: String(l.title || ''), pages: l.pages || '', date: String(l.date || '')}; }) : [];
+    var seen = {}; lessons.forEach(function(l){ seen[l.id] = 1; });
+    cards.forEach(function(c){ if (!seen[c.lesson]) { seen[c.lesson] = 1; lessons.push({id: c.lesson, title: '', pages: '', date: ''}); } });
+    lessons.sort(function(a, b){ return a.id - b.id; });
+    var byId = {};
+    lessons.forEach(function(l){ l.name = lessonText(l); byId[l.id] = l; });
+    cards.forEach(function(c){ c.lessonName = byId[c.lesson].name; c.lessonDate = byId[c.lesson].date; });
+    return {semester: sem, lessons: lessons, cards: cards};
+  });
+}
+var SEMS = normalize(window.CARD_DATA || SAMPLE);
+var USING_SAMPLE = !window.CARD_DATA;
+
+/* ---------- 保存 ---------- */
+var LS_SET = CFG.storage_key + '.settings.v1', LS_PROG = CFG.storage_key + '.progress.v1';
+function load(k, def){ try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch (e) { return def; } }
+function save(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+var DEF = {dir:'ja2zh', sem:'', lessons:[], types:[], roles:[], status:'all', shuffle:false, font:'100', tone:false, autoSpeak:false};
+var S = Object.assign({}, DEF, load(LS_SET, {}) || {});
+['lessons','types','roles'].forEach(function(k){ if (!Array.isArray(S[k])) S[k] = []; });
+if (!DIR_LABEL[S.dir]) S.dir = 'ja2zh';
+if (['100','115','130'].indexOf(String(S.font)) < 0) S.font = '100';
+S.font = String(S.font);
+var P = load(LS_PROG, null) || {};
+if (!P.ja2zh || typeof P.ja2zh !== 'object') P.ja2zh = {};
+if (!P.zh2ja || typeof P.zh2ja !== 'object') P.zh2ja = {};
+function saveS(){ save(LS_SET, S); }
+function saveP(){ save(LS_PROG, P); }
+function status(c, dir){ var r = P[dir || S.dir][c.id]; return r && r.s ? r.s : ''; }
+
+/* ---------- ピンイン / ルビ ---------- */
+var TONE_MARK = {'̄':1, '́':2, '̌':3, '̀':4};
+function toneOf(syl){
+  var d = String(syl).normalize ? String(syl).normalize('NFD') : String(syl);
+  for (var i = 0; i < d.length; i++) { var t = TONE_MARK[d.charAt(i)]; if (t) return t; }
+  return 5;
+}
+function sylSpan(s){ return '<span class="t' + toneOf(s) + '">' + esc(s) + '</span>'; }
+function pinyinHTML(p){ return String(p || '').trim().split(/\s+/).filter(Boolean).map(sylSpan).join(' '); }
+var SKIP_RE = /[\s\p{P}\p{S}]/u, PUNCT_G = /[\p{P}\p{S}]/gu;
+function isSkip(ch){ return SKIP_RE.test(ch); }
+function hanCount(zh){ return Array.from(zh).filter(function(c){ return !isSkip(c); }).length; }
+function rubyHTML(zh, py){
+  var chars = Array.from(zh || '');
+  var han = chars.filter(function(c){ return !isSkip(c); });
+  var syls = String(py || '').trim().split(/\s+/).map(function(s){ return s.replace(PUNCT_G, ''); }).filter(Boolean);
+  if (syls.length && syls.length === han.length) {
+    var k = 0;
+    // 1 文字ずつ <ruby> にして、狭い画面でも語の途中で折り返せるようにする
+    return chars.map(function(c){
+      return isSkip(c) ? '<span>' + esc(c) + '</span>' : '<ruby>' + esc(c) + '<rt>' + sylSpan(syls[k++]) + '</rt></ruby>';
+    }).join('');
+  }
+  return '<ruby>' + esc(zh) + '<rt>' + pinyinHTML(py) + '</rt></ruby>';
+}
+function plainPy(s){
+  return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/v/g, 'u').replace(/[\s']/g, '').toLowerCase();
+}
+
+/* ---------- 読み上げ ---------- */
+var TTS = ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window);
+var voices = [];
+function refreshVoices(){
+  try { voices = window.speechSynthesis.getVoices() || []; } catch (e) { voices = []; }
+  renderTtsStatus();
+}
+function pickVoice(){
+  var zh = voices.filter(function(v){ return /^zh/i.test(v.lang || ''); });
+  if (!zh.length) return null;
+  function score(v){
+    var l = String(v.lang).replace('_', '-').toLowerCase(), s = 0;
+    if (l === 'zh-cn' || l.indexOf('hans') >= 0) s += 10; else if (l === 'zh') s += 7; else if (l === 'zh-tw') s += 3; else if (l === 'zh-hk') s += 1;
+    if (/ting-?ting|xiaoxiao|yaoyao|huihui|lili|普通话|mandarin/i.test(v.name)) s += 2;
+    if (v.localService) s += 1;
+    return s;
+  }
+  return zh.slice().sort(function(a, b){ return score(b) - score(a); })[0];
+}
+var lastUtter = null;   // iOS では参照を保持しないと途中で破棄されて無音になる
+var ttsLog = '';
+function setTtsLog(msg){ ttsLog = msg; renderTtsStatus(); }
+function speak(text, isTest){
+  if (!TTS) { toast('この環境では読み上げが使えません'); return; }
+  try {
+    var ss = window.speechSynthesis;
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 0.9; u.volume = 1;
+    var v = pickVoice();
+    if (v) u.voice = v;
+    else if (voices.length) toast('中国語の音声が見つかりません（端末の設定で追加できます）');
+    u.onstart = function(){ if (isTest) setTtsLog('再生開始（音が聞こえない場合は、本体横の消音スイッチと音量を確認）'); };
+    u.onend = function(){ if (isTest) setTtsLog('再生終了。音が出ていれば正常です'); };
+    u.onerror = function(e){
+      var code = (e && e.error) || 'unknown';
+      if (code === 'interrupted' || code === 'canceled') return;
+      if (isTest) setTtsLog('エラー: ' + code); else toast('読み上げに失敗しました（' + code + '）');
+    };
+    lastUtter = u;
+    var go = function(){ try { ss.resume(); } catch (e) {} ss.speak(u); };
+    if (ss.speaking || ss.pending) { ss.cancel(); setTimeout(go, 80); }   // cancel 直後の speak は iOS で無音になることがある
+    else go();
+    if (isTest) setTtsLog('再生を要求しました…');
+  } catch (e) { toast('この環境では読み上げが使えません'); }
+}
+(function(){ function bind(){ var b = $('#tts-test'); if (b) b.addEventListener('click', function(){ speak('你好', true); }); } if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind); else bind(); })();
+if (TTS) {
+  refreshVoices();
+  try { window.speechSynthesis.addEventListener('voiceschanged', refreshVoices); }
+  catch (e) { try { window.speechSynthesis.onvoiceschanged = refreshVoices; } catch (e2) {} }
+}
+
+/* ---------- 画面切替 ---------- */
+var VIEWS = ['home','study','done','list','settings'];
+var curView = 'home';
+function show(v){
+  VIEWS.forEach(function(id){ $('#v-' + id).hidden = id !== v; });
+  curView = v;
+  document.body.classList.toggle('wide', v === 'list');
+  var navKey = (v === 'study' || v === 'done') ? 'home' : v;
+  $$('nav.tabs button').forEach(function(b){
+    if (b.dataset.nav === navKey && v !== 'study' && v !== 'done') b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
+  if (v !== 'study' && TTS) { try { window.speechSynthesis.cancel(); } catch (e) {} }
+  window.scrollTo(0, 0);
+}
+$$('[data-nav]').forEach(function(b){
+  b.addEventListener('click', function(){
+    var v = b.dataset.nav;
+    if (v === 'home') renderHome();
+    if (v === 'list') renderList();
+    if (v === 'settings') renderSettings();
+    show(v);
+  });
+});
+
+/* ---------- トースト / 確認ダイアログ ---------- */
+var toastTimer = null;
+function toast(msg){
+  var t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+function confirmDialog(msg, okLabel){
+  return new Promise(function(resolve){
+    var m = $('#modal'); $('#m-msg').textContent = msg; $('#m-ok').textContent = okLabel || 'OK';
+    m.hidden = false; $('#m-cancel').focus();
+    function done(v){ m.hidden = true; $('#m-ok').onclick = $('#m-cancel').onclick = m.onclick = null; document.removeEventListener('keydown', onKey, true); resolve(v); }
+    function onKey(e){ if (e.key === 'Escape') { e.stopPropagation(); done(false); } }
+    document.addEventListener('keydown', onKey, true);
+    $('#m-ok').onclick = function(){ done(true); };
+    $('#m-cancel').onclick = function(){ done(false); };
+    m.onclick = function(e){ if (e.target === m) done(false); };
+  });
+}
+
+/* ---------- 絞り込み ---------- */
+function curSem(){
+  for (var i = 0; i < SEMS.length; i++) if (SEMS[i].semester === S.sem) return SEMS[i];
+  return SEMS[SEMS.length - 1];
+}
+function filtered(){
+  var sem = curSem();
+  return sem.cards.filter(function(c){
+    if (S.lessons.length && S.lessons.indexOf(c.lesson) < 0) return false;
+    if (S.types.length && S.types.indexOf(c.type) < 0) return false;
+    if (S.roles.length && S.roles.indexOf(c.role) < 0) return false;
+    if (S.status === 'known' && status(c) !== 'known') return false;
+    if (S.status === 'unknown' && status(c) === 'known') return false;
+    return true;
+  });
+}
+function setSegPressed(el, val){ $$('button', el).forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.v === String(val))); }); }
+
+/* ---------- ホーム ---------- */
+function renderHome(){
+  var sem = curSem();
+  S.sem = sem.semester;
+  var valid = sem.lessons.map(function(l){ return l.id; });
+  S.lessons = S.lessons.filter(function(id){ return valid.indexOf(id) >= 0; });
+
+  var semWrap = $('#f-sem-wrap');
+  semWrap.hidden = SEMS.length < 2;
+  $('#f-sem').innerHTML = SEMS.map(function(s){
+    return '<option value="' + esc(s.semester) + '"' + (s.semester === sem.semester ? ' selected' : '') + '>' + esc(s.semester) + '</option>'; }).join('');
+
+  setSegPressed($('#f-dir'), S.dir);
+  setSegPressed($('#f-status'), S.status);
+  setSegPressed($('#f-shuffle'), S.shuffle ? '1' : '0');
+  $('#f-status-note').textContent = '（' + DIR_LABEL[S.dir] + ' の記録）';
+
+  var allL = !S.lessons.length;
+  var h = '<button type="button" class="lrow" data-l="all" aria-pressed="' + allL + '"><span class="ck"></span><span class="lt"><b>' + esc('すべての' + CFG.lesson_label) + '</b></span><span class="n">' + sem.cards.length + ' 枚</span></button>';
+  h += sem.lessons.map(function(l){
+    var n = sem.cards.filter(function(c){ return c.lesson === l.id; }).length;
+    var on = S.lessons.indexOf(l.id) >= 0;
+    return '<button type="button" class="lrow" data-l="' + l.id + '" aria-pressed="' + on + '"><span class="ck"></span><span class="lt"><b' + (LESSON_HAS_TITLE ? ' lang="zh-Hans"' : '') + '>' + esc(l.name) + '</b>' +
+      (l.title && !LESSON_HAS_TITLE ? '<small lang="zh-Hans">' + esc(l.title) + '</small>' : '') +
+      (l.date ? '<small class="dt">' + esc(l.date) + '</small>' : '') + '</span><span class="n">' + n + ' 枚</span></button>';
+  }).join('');
+  $('#f-lessons').innerHTML = h;
+
+  function chips(list, sel, key){
+    return '<button type="button" class="chip" data-' + key + '="all" aria-pressed="' + (!sel.length) + '">すべて</button>' +
+      list.map(function(t){ return '<button type="button" class="chip" data-' + key + '="' + t + '" aria-pressed="' + (sel.indexOf(t) >= 0) + '">' + t + '</button>'; }).join('');
+  }
+  $('#f-types').innerHTML = chips(TYPES, S.types, 't');
+  $('#f-roles').innerHTML = chips(ROLES, S.roles, 'r');
+  updateCount();
+}
+function updateCount(){
+  var n = filtered().length;
+  $('#h-count').textContent = n;
+  $('#b-study').disabled = !n;
+  var r = $('#b-resume');
+  if (sess && sess.i < sess.order.length && sess.i > 0) {
+    r.hidden = false; r.textContent = '学習の続きから（' + (sess.i + 1) + ' / ' + sess.order.length + '）';
+  } else r.hidden = true;
+}
+function toggleIn(arr, v){ var i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
+$('#f-sem').addEventListener('change', function(e){ S.sem = e.target.value; S.lessons = []; saveS(); renderHome(); });
+$('#f-dir').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; S.dir = b.dataset.v; saveS(); renderHome(); });
+$('#f-status').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; S.status = b.dataset.v; saveS(); renderHome(); });
+$('#f-shuffle').addEventListener('click', function(e){ var b = e.target.closest('button'); if (!b) return; S.shuffle = b.dataset.v === '1'; saveS(); renderHome(); });
+$('#f-lessons').addEventListener('click', function(e){
+  var b = e.target.closest('[data-l]'); if (!b) return;
+  if (b.dataset.l === 'all') S.lessons = []; else toggleIn(S.lessons, Number(b.dataset.l));
+  if (S.lessons.length === curSem().lessons.length) S.lessons = [];
+  saveS(); renderHome();
+});
+function chipHandler(key, prop, all){
+  return function(e){
+    var b = e.target.closest('[data-' + key + ']'); if (!b) return;
+    var v = b.getAttribute('data-' + key);
+    if (v === 'all') S[prop] = []; else toggleIn(S[prop], v);
+    if (S[prop].length === all.length) S[prop] = [];
+    saveS(); renderHome();
+  };
+}
+$('#f-types').addEventListener('click', chipHandler('t', 'types', TYPES));
+$('#f-roles').addEventListener('click', chipHandler('r', 'roles', ROLES));
+$('#b-study').addEventListener('click', function(){ var cs = filtered(); if (cs.length) startSession(cs); });
+$('#b-tolist').addEventListener('click', function(){ renderList(); show('list'); });
+$('#b-resume').addEventListener('click', function(){ if (sess) { renderCard(); show('study'); } });
+
+/* ---------- 学習セッション ---------- */
+var sess = null, busy = false, suppressClick = false;
+var cardEl = $('#card'), swEl = $('#swipe');
+function shuffled(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function byOrder(a, b){ return a.lesson - b.lesson || a._o - b._o; }
+function startSession(cards, startIdx){
+  var base = cards.slice();
+  var order = (startIdx == null && S.shuffle) ? shuffled(base) : base.slice();
+  sess = {base: base, order: order, i: startIdx || 0, dir: S.dir, hist: [], results: {}, shuffle: startIdx == null && S.shuffle};
+  renderCard(); show('study');
+}
+function curCard(){ return sess.order[sess.i]; }
+function srcText(c){
+  var tpl = CFG.source_format;
+  if (!c.pages.length) tpl = tpl.replace(/[^{}]*\{pages\}/g, '');   // ページが無ければ直前の文字ごと消す（" p{pages}" → ""）
+  return fmt(tpl, {lesson: c.lessonName, pages: c.pages.join(', p')}).trim();
+}
+function metaHTML(c){
+  return '<div class="meta"><span><span class="badge">' + esc(c.type) + '</span>' + (c.role === '関連語' ? '<span class="badge rel">関連語</span>' : '') +
+    '</span><span class="src" title="' + esc(srcText(c)) + '"' + (LESSON_HAS_TITLE ? ' lang="zh-Hans"' : '') + '>' + esc(srcText(c)) + '</span></div>';
+}
+function zhHead(c){
+  var n = hanCount(c.zh);
+  var sz = n <= 2 ? 's1' : n <= 4 ? 's2' : n <= 6 ? 's3' : n <= 8 ? 's4' : 's5';
+  return '<div class="zh-head"><div class="zh-word ' + sz + '" lang="zh-Hans" data-act="ruby">' + rubyHTML(c.zh, c.pinyin) + '</div>' +
+    '<div class="zh-tools"><button type="button" class="icon-btn" data-act="speak" aria-label="読み上げ">' + ICON_SPK + '</button>' +
+    '<button type="button" class="pill" data-act="pin" aria-pressed="false">ピンイン</button></div></div>';
+}
+function frontHTML(c, dir){
+  var body = dir === 'ja2zh' ? '<div class="ja-q" lang="ja">' + esc(c.ja) + (c.ja_ai ? AI : '') + '</div>' : zhHead(c);
+  return metaHTML(c) + '<div class="front-body">' + body + '</div><div class="tap-hint">タップでめくる</div>';
+}
+function backHTML(c, dir){
+  var h = metaHTML(c) + zhHead(c);
+  if (dir === 'zh2ja') h += '<div class="ja-ans" lang="ja">' + esc(c.ja) + (c.ja_ai ? AI : '') + '</div>';
+  if (c.def_zh) h += '<div class="sec"><div class="sec-h">語釈</div><p class="def"><span lang="zh-Hans">' + esc(c.def_zh) + '</span>' + (c.def_zh_ai ? AI : '') + '</p></div>';
+  if (c.ja_note) h += '<div class="sec"><div class="sec-h">解説</div><p class="note" lang="ja">' + esc(c.ja_note) + '</p></div>';
+  if (c.examples.length) {
+    h += '<div class="sec"><div class="sec-h">例文</div><ol class="ex">' + c.examples.map(function(e, i){
+      return '<li' + (i >= 2 ? ' class="ex-more"' : '') + '><div class="ex-zh"><span lang="zh-Hans">' + esc(e.zh) + '</span>' +
+        '<button type="button" class="icon-btn" data-act="speak-ex" data-i="' + i + '" aria-label="例文を読み上げ">' + ICON_SPK + '</button></div>' +
+        (e.ja ? '<div class="ex-ja" lang="ja">' + esc(e.ja) + (e.ja_ai ? AI : '') + '</div>' : '') + '</li>';
+    }).join('') + '</ol>' +
+    (c.examples.length > 2 ? '<button type="button" class="more" data-act="more">もっと見る（+' + (c.examples.length - 2) + '）</button>' : '') + '</div>';
+  }
+  if (c.related.length || c.parent) {
+    h += '<div class="sec"><div class="sec-h">関連語・コロケーション</div><div class="tags">' +
+      (c.parent ? '<span class="tag parent"><span lang="ja">見出し語：</span><span lang="zh-Hans">' + esc(c.parent) + '</span></span>' : '') +
+      c.related.map(function(r){ return '<span class="tag" lang="zh-Hans">' + esc(r) + '</span>'; }).join('') + '</div></div>';
+  }
+  return h;
+}
+function renderCard(){
+  var c = curCard(), dir = sess.dir;
+  cardEl.classList.add('noanim');
+  cardEl.classList.remove('flipped', 'pin-on', 'ex-open');
+  $('#face-front').innerHTML = frontHTML(c, dir);
+  $('#face-back').innerHTML = backHTML(c, dir);
+  $('#face-front').setAttribute('aria-hidden', 'false');
+  $('#face-back').setAttribute('aria-hidden', 'true');
+  void cardEl.offsetWidth;
+  cardEl.classList.remove('noanim');
+  resetDrag(true);
+  var n = sess.order.length;
+  $('#s-pos').textContent = (sess.i + 1) + ' / ' + n;
+  $('#s-dir').textContent = DIR_LABEL[dir];
+  $('#s-bar').style.width = (sess.i / n * 100) + '%';
+  $('#b-prev').disabled = !sess.hist.length;
+  $('#b-shuffle').setAttribute('aria-pressed', String(!!sess.shuffle));
+}
+function flip(){
+  if (!sess) return;
+  var f = !cardEl.classList.contains('flipped');
+  cardEl.classList.toggle('flipped', f);
+  $('#face-front').setAttribute('aria-hidden', String(f));
+  $('#face-back').setAttribute('aria-hidden', String(!f));
+  if (f && S.autoSpeak) speak(curCard().zh);
+}
+function togglePin(){
+  var on = !cardEl.classList.contains('pin-on');
+  cardEl.classList.toggle('pin-on', on);
+  $$('[data-act="pin"]', cardEl).forEach(function(b){ b.setAttribute('aria-pressed', String(on)); });
+}
+function judge(s){
+  if (busy || !sess || curView !== 'study') return;
+  var c = curCard(), d = sess.dir;
+  sess.hist.push({id: c.id, prev: P[d][c.id], i: sess.i});
+  P[d][c.id] = {s: s, t: Date.now()}; saveP();
+  sess.results[c.id] = s;
+  busy = true;
+  var sign = s === 'known' ? 1 : -1;
+  var dur = REDUCED ? 0 : 230;
+  swEl.style.transition = REDUCED ? 'none' : 'transform .23s ease-in, opacity .23s ease-in';
+  swEl.style.transform = 'translateX(' + (sign * 120) + '%) rotate(' + (sign * 12) + 'deg)';
+  swEl.style.opacity = '0';
+  setTimeout(function(){
+    sess.i++;
+    if (sess.i >= sess.order.length) { busy = false; resetDrag(true); showDone(); return; }
+    swEl.style.transition = 'none';
+    renderCard();
+    swEl.style.transform = 'translateY(14px)'; swEl.style.opacity = '0';
+    void swEl.offsetWidth;
+    swEl.style.transition = REDUCED ? 'none' : 'transform .2s ease-out, opacity .2s ease-out';
+    swEl.style.transform = ''; swEl.style.opacity = '';
+    busy = false;
+  }, dur);
+}
+function undo(){
+  if (busy || !sess || !sess.hist.length) return;
+  var h = sess.hist.pop(), d = sess.dir;
+  if (h.prev) P[d][h.id] = h.prev; else delete P[d][h.id];
+  saveP();
+  delete sess.results[h.id];
+  sess.i = h.i;
+  renderCard(); show('study');
+}
+function showDone(){
+  var k = 0, u = 0;
+  Object.keys(sess.results).forEach(function(id){ if (sess.results[id] === 'known') k++; else u++; });
+  $('#d-known').textContent = k; $('#d-unknown').textContent = u;
+  var rest = sess.order.length - Object.keys(sess.results).length;
+  $('#d-note').textContent = '全 ' + sess.order.length + ' 枚（' + DIR_LABEL[sess.dir] + '）' + (rest > 0 ? '・未判定 ' + rest + ' 枚' : '');
+  $('#b-again').disabled = !u;
+  $('#b-done-prev').hidden = !sess.hist.length;
+  $('#s-bar').style.width = '100%';
+  show('done');
+}
+cardEl.addEventListener('click', function(e){
+  if (suppressClick || busy) return;
+  var a = e.target.closest('[data-act]');
+  if (a && cardEl.contains(a)) {
+    var act = a.dataset.act, c = curCard();
+    if (act === 'ruby' || act === 'pin') togglePin();
+    else if (act === 'speak') speak(c.zh);
+    else if (act === 'speak-ex') speak(c.examples[Number(a.dataset.i)].zh);
+    else if (act === 'more') cardEl.classList.add('ex-open');
+    return;
+  }
+  flip();
+});
+cardEl.addEventListener('keydown', function(e){
+  if ((e.key === 'Enter' || e.key === ' ') && e.target === cardEl) { e.preventDefault(); flip(); }
+});
+$('#b-known').addEventListener('click', function(){ judge('known'); });
+$('#b-unknown').addEventListener('click', function(){ judge('unknown'); });
+$('#b-prev').addEventListener('click', undo);
+$('#b-done-prev').addEventListener('click', undo);
+$('#b-quit').addEventListener('click', function(){ if (sess) showDone(); });
+$('#b-shuffle').addEventListener('click', function(){
+  if (!sess || busy) return;
+  sess.shuffle = !sess.shuffle;
+  S.shuffle = sess.shuffle; saveS();
+  // 表示中のカードはそのまま、残りの順番だけを並べ替える
+  var head = sess.order.slice(0, sess.i + 1), rest = sess.order.slice(sess.i + 1);
+  rest = sess.shuffle ? shuffled(rest) : rest.sort(byOrder);
+  sess.order = head.concat(rest);
+  $('#b-shuffle').setAttribute('aria-pressed', String(sess.shuffle));
+  toast(sess.shuffle ? '残りのカードをシャッフルしました' : '残りのカードを資料順に戻しました');
+});
+$('#b-again').addEventListener('click', function(){
+  var cs = sess.order.filter(function(c){ return sess.results[c.id] === 'unknown'; });
+  if (cs.length) startSession(cs.sort(byOrder));
+});
+$('#b-restart').addEventListener('click', function(){ startSession(sess.base); });
+$('#b-home').addEventListener('click', function(){ renderHome(); show('home'); });
+
+document.addEventListener('keydown', function(e){
+  if (curView !== 'study' || !$('#modal').hidden || e.metaKey || e.ctrlKey || e.altKey) return;
+  var tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+  if (e.key === 'ArrowRight') { e.preventDefault(); judge('known'); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); judge('unknown'); }
+  else if (e.key === 'Backspace' || e.key === 'ArrowUp') { e.preventDefault(); undo(); }
+  else if (e.key === 'p' || e.key === 'P') togglePin();
+  else if (e.key === 's' || e.key === 'S') speak(curCard().zh);
+  else if ((e.key === ' ' || e.key === 'Enter') && tag !== 'button') { e.preventDefault(); flip(); }
+});
+
+/* ---------- スワイプ ---------- */
+var tx = null;
+function setDrag(dx){
+  swEl.style.transform = 'translateX(' + dx + 'px) rotate(' + (dx / 22) + 'deg)';
+  var o = Math.min(1, Math.abs(dx) / 60);
+  $('#tag-known').style.opacity = dx > 0 ? o : 0;
+  $('#tag-unknown').style.opacity = dx < 0 ? o : 0;
+}
+function resetDrag(instant){
+  swEl.style.transition = (instant || REDUCED) ? 'none' : 'transform .2s ease-out';
+  swEl.style.transform = ''; swEl.style.opacity = '';
+  $('#tag-known').style.opacity = 0; $('#tag-unknown').style.opacity = 0;
+}
+swEl.addEventListener('touchstart', function(e){
+  if (busy || e.touches.length !== 1) { tx = null; return; }
+  var t = e.touches[0];
+  tx = {x: t.clientX, y: t.clientY, dx: 0, axis: null};
+  swEl.style.transition = 'none';
+}, {passive: true});
+swEl.addEventListener('touchmove', function(e){
+  if (!tx) return;
+  var t = e.touches[0], dx = t.clientX - tx.x, dy = t.clientY - tx.y;
+  if (!tx.axis) {
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+    tx.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+  }
+  if (tx.axis !== 'x') return;   // 縦方向はスクロールに任せる
+  e.preventDefault();
+  tx.dx = dx; setDrag(dx);
+}, {passive: false});
+function touchEnd(){
+  if (!tx) return;
+  var axis = tx.axis, dx = tx.dx; tx = null;
+  if (axis !== 'x') return;
+  suppressClick = true; setTimeout(function(){ suppressClick = false; }, 350);
+  if (Math.abs(dx) >= 60) {
+    $('#tag-known').style.opacity = 0; $('#tag-unknown').style.opacity = 0;
+    judge(dx > 0 ? 'known' : 'unknown');
+  } else resetDrag(false);
+}
+swEl.addEventListener('touchend', touchEnd);
+swEl.addEventListener('touchcancel', function(){ tx = null; resetDrag(false); });
+
+/* ---------- 一覧 ---------- */
+var listRows = [];
+function renderList(){
+  var q = $('#l-q').value.trim().toLowerCase(), qp = plainPy(q);
+  listRows = filtered().filter(function(c){
+    if (!q) return true;
+    return c.zh.indexOf(q) >= 0 || c.ja.toLowerCase().indexOf(q) >= 0 || c.ja_note.toLowerCase().indexOf(q) >= 0 ||
+      c.pinyin.toLowerCase().indexOf(q) >= 0 || (qp && plainPy(c.pinyin).indexOf(qp) >= 0);
+  });
+  $('#l-info').textContent = listRows.length + ' 件 ・ ホームの絞り込み条件を適用 ・ 状況は ' + DIR_LABEL[S.dir] + ' の記録';
+  $('#l-body').innerHTML = listRows.map(function(c, i){
+    var s = status(c);
+    var st = s === 'known' ? '<span class="st known">覚えた</span>' : s === 'unknown' ? '<span class="st unknown">まだ</span>' : '<span class="st none">未学習</span>';
+    return '<tr data-i="' + i + '" tabindex="0"><td class="c-zh" lang="zh-Hans">' + esc(c.zh) + '</td><td class="c-py">' + pinyinHTML(c.pinyin) +
+      '</td><td class="c-ja">' + esc(c.ja) + (c.ja_ai ? AI : '') + '</td><td class="c-ls' + (Array.from(c.lessonName).length > 8 ? ' long' : '') + '"' + (LESSON_HAS_TITLE ? ' lang="zh-Hans"' : '') + '>' + esc(c.lessonName) +
+      (c.lessonDate ? '<small class="ls-dt" lang="ja">' + esc(c.lessonDate) + '</small>' : '') + '</td><td class="c-ty">' + esc(c.type) +
+      '</td><td class="c-st">' + st + '</td></tr>';
+  }).join('');
+  $('#l-table').hidden = !listRows.length;
+  $('#l-empty').hidden = !!listRows.length;
+}
+$('#l-q').addEventListener('input', renderList);
+function openRow(tr){ if (!tr) return; startSession(listRows, Number(tr.dataset.i)); }
+$('#l-body').addEventListener('click', function(e){ openRow(e.target.closest('tr')); });
+$('#l-body').addEventListener('keydown', function(e){ if (e.key === 'Enter') openRow(e.target.closest('tr')); });
+
+/* ---------- 設定 ---------- */
+function applySettings(){
+  document.documentElement.style.setProperty('--base', S.font + '%');
+  document.documentElement.classList.toggle('tone-on', !!S.tone);
+}
+function renderTtsStatus(){
+  var el = $('#tts-status'); if (!el) return;
+  if (!TTS) { el.textContent = 'この環境では読み上げが使えません'; return; }
+  var v = pickVoice();
+  var base = v ? '使用する音声: ' + v.name + '（' + v.lang + '）' : voices.length ? '中国語の音声が見つかりません（端末の設定で追加できます）' : '読み上げ: 利用可能（音声の一覧を取得中）';
+  el.textContent = base + (ttsLog ? ' ／ ' + ttsLog : '');
+}
+function renderSettings(){
+  $$('#v-settings .seg[data-key]').forEach(function(seg){
+    var k = seg.dataset.key, v = k === 'font' ? S.font : (S[k] ? '1' : '0');
+    setSegPressed(seg, v);
+  });
+  renderTtsStatus();
+  $('#b-reset-filter').textContent = '表示中の絞り込み（' + filtered().length + ' 枚）をリセット';
+  var total = SEMS.reduce(function(a, s){ return a + s.cards.length; }, 0);
+  $('#about').textContent = (USING_SAMPLE ? 'サンプルデータで動作中 ・ ' : '') + SEMS.map(function(s){ return s.semester; }).join('・') + ' ・ 全 ' + total + ' 枚';
+}
+$$('#v-settings .seg[data-key]').forEach(function(seg){
+  seg.addEventListener('click', function(e){
+    var b = e.target.closest('button'); if (!b) return;
+    var k = seg.dataset.key;
+    S[k] = k === 'font' ? b.dataset.v : b.dataset.v === '1';
+    saveS(); applySettings(); renderSettings();
+  });
+});
+$('#b-reset-filter').addEventListener('click', function(){
+  var cs = filtered();
+  if (!cs.length) { toast('該当するカードがありません'); return; }
+  confirmDialog('表示中の絞り込みに当てはまる ' + cs.length + ' 枚の進捗（日→中・中→日）を消去します。\nよろしいですか？', 'リセット').then(function(ok){
+    if (!ok) return;
+    cs.forEach(function(c){ delete P.ja2zh[c.id]; delete P.zh2ja[c.id]; });
+    saveP(); renderSettings(); toast('進捗をリセットしました');
+  });
+});
+$('#b-reset-all').addEventListener('click', function(){
+  confirmDialog('すべてのカードの進捗（日→中・中→日）を消去します。\nよろしいですか？', 'リセット').then(function(ok){
+    if (!ok) return;
+    P = {ja2zh: {}, zh2ja: {}}; saveP(); renderSettings(); toast('すべての進捗をリセットしました');
+  });
+});
+
+/* ---------- 起動 ---------- */
+function applyConfig(){
+  document.title = CFG.title;
+  var m = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+  if (m) m.setAttribute('content', CFG.title);
+  $('#app-title').textContent = CFG.title;
+  $('#app-logo').textContent = CFG.logo;
+  $('#f-sem-lbl').textContent = CFG.semester_label;
+  $('#f-lessons-lbl').textContent = CFG.lesson_label;
+  $('#l-th-lesson').textContent = CFG.lesson_label;
+}
+applyConfig();
+applySettings();
+renderHome();
+show('home');
+})();
+</script>
+</body>
+</html>
